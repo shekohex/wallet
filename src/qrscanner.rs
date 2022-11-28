@@ -1,44 +1,62 @@
+use anyhow::Context;
 use anyhow::Result;
-use fast_qr::QRBuilder;
 use image::DynamicImage;
-use nokhwa::pixel_format::RgbFormat;
-use nokhwa::utils::CameraIndex;
-use nokhwa::utils::RequestedFormat;
-use nokhwa::utils::RequestedFormatType;
-use nokhwa::Camera;
+use qrcode::render::unicode::Dense1x2;
 use std::time::Duration;
+use v4l::buffer::Type;
+use v4l::io::traits::CaptureStream;
+use v4l::video::Capture;
 
 static PROGRESS: &[&str] = &["   ", ".  ", ".. ", "..."];
 
 pub fn capture() -> Result<()> {
-    let backend = nokhwa::native_api_backend().ok_or_else(|| {
-        anyhow::anyhow!("No backend found, please check your installation")
-    })?;
-    let devices = nokhwa::query(backend)?;
-    let first_device = devices
-        .first()
-        .ok_or_else(|| anyhow::anyhow!("No camera found"))?;
-    let requested = RequestedFormat::new::<RgbFormat>(
-        RequestedFormatType::HighestResolutionAbs,
-    );
-    // let format = RequestedFormat::new_from(640, 480, FrameFormat::MJPEG, 30);
-    let mut camera = Camera::new(first_device.index().clone(), requested)?;
+    let devices = v4l::context::enum_devices();
+    if devices.is_empty() {
+        anyhow::bail!("No video devices found");
+    }
+    let devices_display = devices
+        .iter()
+        .map(|d| {
+            format!(
+                "{}: {} ({})",
+                d.index(),
+                d.name().unwrap_or_default(),
+                d.path().display()
+            )
+        })
+        .collect::<Vec<_>>();
+    let selected_device = inquire::Select::new(
+        "Select your camera device to use",
+        devices_display.clone(),
+    )
+    .prompt()
+    .context("Failed to select device")?;
+    let i = devices_display
+        .iter()
+        .position(|d| d == &selected_device)
+        .unwrap_or_default();
+    let device = &devices[i];
+    let device = v4l::Device::new(device.index())?;
+    let format = device.format()?;
+    let mut stream =
+        v4l::io::mmap::Stream::with_buffers(&device, Type::VideoCapture, 4)?;
     let mut spinner = 0;
 
     let preview = viuer::Config {
-        x: 0,
-        y: 0,
         restore_cursor: false,
         transparent: false,
-        absolute_offset: true,
         ..Default::default()
     };
 
-    camera.open_stream()?;
-
     loop {
-        let frame = camera.frame()?;
-        let image = DynamicImage::ImageRgb8(frame.decode_image::<RgbFormat>()?);
+        let (buf, _) = stream.next()?;
+        let img_buf = image::ImageBuffer::from_raw(
+            format.width as u32,
+            format.height as u32,
+            buf.to_owned(),
+        )
+        .ok_or_else(|| anyhow::anyhow!("Failed to convert buffer to image"))?;
+        let image = DynamicImage::ImageLuma8(img_buf);
         if print_image(&image).is_err() {
             viuer::print(&image.fliph(), &preview)?;
             eprint!("\rScanning via camera{}", PROGRESS[spinner]);
@@ -60,10 +78,9 @@ fn print_image(image: &DynamicImage) -> Result<()> {
         let (meta, content) = grid.decode()?;
         eprint!("\r                        \r");
         println!();
-        let qrcode = QRBuilder::new(content.clone())
-            .build()
-            .map_err(|e| anyhow::anyhow!("{:?}", e))?;
-        qrcode.print();
+        let qrcode = qrcode::QrCode::new(content.clone())?;
+        let image = qrcode.render::<Dense1x2>().build();
+        println!("{}", image);
         // Metadata
         println!();
         println!("Version: {}", meta.version.0);
@@ -75,7 +92,7 @@ fn print_image(image: &DynamicImage) -> Result<()> {
         println!();
         println!("{}", content);
     } else {
-        std::thread::sleep(Duration::from_millis(200));
+        std::thread::sleep(Duration::from_millis(50));
         anyhow::bail!("failed to read")
     };
 

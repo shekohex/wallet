@@ -18,19 +18,12 @@ ethers = { version = "1", default-features = false, features = ["rustls", "abige
 reqwest = { version = "0.11", default-features = false, features = ["json"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 
-fast_qr = "0.6.1"
-image = "0.24"
-rqrr = "0.5"
-viuer = "0.6"
+v4l = "0.13"
+qrcode = "0.12"
+image = "0.23"
+rqrr = "0.4"
+viuer = "0.5"
 
-[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
-nokhwa = { version = "0.10.0-rc.2", features = ["input-v4l"] }
-
-[target.'cfg(windows)'.dependencies]
-nokhwa = { version = "0.10.0-rc.2", features = ["input-msmf"] }
-
-[target.'cfg(target_os = "macos")'.dependencies]
-nokhwa = { version = "0.10.0-rc.2", features = ["input-avfoundation"] }
 
 [profile.release]
 lto = true
