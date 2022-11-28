@@ -20,7 +20,7 @@ That's it, that is all I need for now, maybe in the future I will extend it more
 
 ### Usage
 
-Just run `shekozwallet`, that's it, the wallet will look for `shekozwallet.toml` config file and will load it.
+Just run `shekozwallet`, that's it, the wallet will look for `shekozwallet.json` config file and will load it.
 The wallet is interactive, it will first load and verify the config file, then follow the steps:
 
 1. Sync your Account, from your QR Hardware wallet.
@@ -30,7 +30,7 @@ The wallet is interactive, it will first load and verify the config file, then f
 
 ### Contributing
 
-While this my custom wallet, and I do not expect anyone else using it too, I would be happy to see any contribution or suggestions. So feel free to open an issue to ask about any questions.
+While this my custom wallet, and I do not expect anyone else using it too, However, I would be happy to see any contribution or suggestions. So feel free to open an issue to ask about any questions.
 
 ### License
 
