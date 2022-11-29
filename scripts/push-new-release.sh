@@ -18,7 +18,7 @@ if git rev-parse "v$VERSION" >/dev/null 2>&1; then
 fi
 
 # Create a new tag for the release.
-git tag -a "v$VERSION" -m "Release v$VERSION"
+git tag -s "v$VERSION" -m "Release v$VERSION"
 # Push the tag to the remote.
 # This will trigger the release workflow.
 git push origin "v$VERSION"
