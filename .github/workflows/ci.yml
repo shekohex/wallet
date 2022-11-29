@@ -36,9 +36,6 @@ jobs:
       packages: write
       contents: read
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1
         with:
@@ -50,6 +47,10 @@ jobs:
           name: cross-linux-musl
           path: /tmp/
       - run: chmod +x /tmp/cross
+      - name: Install Build deps
+        run: sudo apt install llvm-dev libclang-dev clang
+      - name: Cargo Cache
+        uses: Swatinem/rust-cache@v2
       - run: ci/set_rust_version.bash ${{ matrix.channel }} ${{ matrix.target }}
       - run: ci/build.bash /tmp/cross ${{ matrix.target }}
 
