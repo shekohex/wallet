@@ -9,14 +9,17 @@ This my custom and simple crypto wallet, designed specifically for my needs:
 
 This wallet should support these operations:
 
-- [ ] Send Native Tokens.
-- [ ] Send ERC-20 Tokens.
+- [x] Send Native Tokens.
+- [x] Send ERC-20 Tokens.
 
 That's it, that is all I need for now, maybe in the future I will extend it more.
 
 ### Download
 
-> TODO(@shekohex): Add a one line install script here that will download the wallet from github release.
+Currently, my wallet only supports Linux, I mean I would only use it on [Tails OS](https://tails.boum.org/) with a USB Stick, so
+my only target for now, is Linux.
+
+You can download it from [Github Releases](https://github.com/shekohex/wallet/releases/latest).
 
 ### Usage
 
