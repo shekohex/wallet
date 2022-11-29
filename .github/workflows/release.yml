@@ -34,6 +34,9 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     needs: install-cross
+    permissions:
+      packages: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -78,6 +81,10 @@ jobs:
           # - thumbv7em-none-eabihf
           # - thumbv7m-none-eabi
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v1
         with:
