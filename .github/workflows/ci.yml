@@ -84,7 +84,7 @@ jobs:
           # - powerpc-unknown-linux-gnu
           # - powerpc64le-unknown-linux-gnu
           # - s390x-unknown-linux-gnu
-          - x86_64-unknown-linux-gnu
+          # - x86_64-unknown-linux-gnu
           - x86_64-unknown-linux-musl
           # Android
           # - aarch64-linux-android
