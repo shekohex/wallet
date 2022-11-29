@@ -36,10 +36,8 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Set up ssh-agent
-        uses: yakuhzi/action-ssh-agent@v2
+      - uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-public-key: ${{ secrets.SSH_PUBLIC_KEY }}
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1
