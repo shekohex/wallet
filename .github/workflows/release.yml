@@ -81,7 +81,11 @@ jobs:
           # - thumbv7em-none-eabihf
           # - thumbv7m-none-eabi
     steps:
-      - uses: frankdejonge/use-ssh-agent@1.0.0
+      - name: Set up ssh-agent
+        uses: yakuhzi/action-ssh-agent@v2
+        with:
+          ssh-public-key: ${{ secrets.SSH_PUBLIC_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1
         with:
