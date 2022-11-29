@@ -24,8 +24,8 @@ indicatif = "0.17"
 coins-bip32 = "0.7"
 
 [dependencies.ur-registry]
-git = "https://github.com/KeystoneHQ/ur-registry-rust.git"
-rev = "e2e7b92"
+git = "https://github.com/shekohex/ur-registry-rust.git"
+rev = "0151303"
 version = "0.1.0"
 
 [dependencies.ur]
@@ -37,6 +37,3 @@ version = "0.2.0"
 [profile.release]
 lto = true
 codegen-units = 1
-
-[net]
-git-fetch-with-cli = true

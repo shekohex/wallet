@@ -3297,7 +3297,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "ur 0.2.0 (git+https://github.com/KeystoneHQ/ur-rs.git?rev=5f673a1)",
+ "ur",
  "ur-registry",
  "url",
  "v4l",
@@ -3971,29 +3971,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "ur"
-version = "0.2.0"
-source = "git+https://github.com/KeystoneHQ/ur-registry-rust.git?rev=e2e7b92#e2e7b92284974aebe99f54b4875b7b26d91e74bd"
-dependencies = [
- "anyhow",
- "bitcoin_hashes",
- "crc",
- "hex",
- "once_cell",
- "rand_xoshiro",
- "serde",
- "serde_cbor",
-]
-
-[[package]]
 name = "ur-registry"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/ur-registry-rust.git?rev=e2e7b92#e2e7b92284974aebe99f54b4875b7b26d91e74bd"
+source = "git+https://github.com/shekohex/ur-registry-rust.git?rev=0151303#01513034e6f0068f9ee530ee9ec6a7e6712513d1"
 dependencies = [
  "bs58",
  "hex",
  "serde_cbor",
- "ur 0.2.0 (git+https://github.com/KeystoneHQ/ur-registry-rust.git?rev=e2e7b92)",
+ "ur",
 ]
 
 [[package]]
