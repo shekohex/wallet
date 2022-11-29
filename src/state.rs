@@ -208,18 +208,7 @@ impl AppState<WithAccount> {
                 self.config.contacts.clone(),
             ))
             .prompt()
-            .and_then(|s| {
-                // Check if it starts with 0x
-                if s.starts_with("0x") {
-                    s.parse::<types::Address>()
-                } else {
-                    // it must be a contact name then the address is in the
-                    // format "name <address>" so we split
-                    // on the space and take the second part
-                    s.split(' ').nth(1).unwrap_or(&s).parse()
-                }
-                .map_err(|e| inquire::InquireError::Custom(e.into()))
-            })?;
+            .and_then(try_parse_address)?;
         Ok(WithOperation::NativeTransfer(NativeTransferOp {
             term: self.term.clone(),
             crypto_key_path: self.inner.crypto_key_path.clone(),
@@ -237,43 +226,17 @@ impl AppState<WithAccount> {
                 self.inner.network.erc20_tokens.clone(),
             ))
             .prompt()
-            .and_then(|s| {
-                // Check if it starts with 0x
-                if s.starts_with("0x") {
-                    s.parse::<types::Address>()
-                } else {
-                    // it must be a token name then the address is in the
-                    // format "name <address>" so we split
-                    // on the space and take the second part
-                    s.split(' ').nth(1).unwrap_or(&s).parse()
-                }
-                .map_err(|e| inquire::InquireError::Custom(e.into()))
-            })?;
+            .and_then(try_parse_address)?;
         let amount = inquire::Text::new("Amount to transfer")
             .with_validator(EtherAmountValidator)
-            .prompt()
-            .and_then(|s| {
-                ethers::utils::parse_ether(s)
-                    .map_err(|e| inquire::InquireError::Custom(e.into()))
-            })?;
+            .prompt()?;
         let recipient = inquire::Text::new("Recipient address")
             .with_validator(AddressValidator)
             .with_autocomplete(AddressBookAutoComplete::new(
                 self.config.contacts.clone(),
             ))
             .prompt()
-            .and_then(|s| {
-                // Check if it starts with 0x
-                if s.starts_with("0x") {
-                    s.parse::<types::Address>()
-                } else {
-                    // it must be a contact name then the address is in the
-                    // format "name <address>" so we split
-                    // on the space and take the second part
-                    s.split(' ').nth(1).unwrap_or(&s).parse()
-                }
-                .map_err(|e| inquire::InquireError::Custom(e.into()))
-            })?;
+            .and_then(try_parse_address)?;
         Ok(WithOperation::Erc20Transfer(Erc20TransferOp {
             term: self.term.clone(),
             crypto_key_path: self.inner.crypto_key_path.clone(),
@@ -335,7 +298,7 @@ pub struct Erc20TransferOp {
     erc20_token: types::Address,
     to: types::Address,
     from: types::Address,
-    amount: ethers::types::U256,
+    amount: String,
     client: EthersClient,
 }
 
@@ -380,7 +343,7 @@ impl AppState<WithOperation> {
             crypto_key_path,
             data_type: ethereum::eth_sign_request::DataType::PersonalMessage,
         })?;
-        term.write_line(&format!("Signature: {}", signature))?;
+        term.write_line(&format!("Signature: 0x{}", signature))?;
         Ok(())
     }
 
@@ -453,7 +416,7 @@ impl AppState<WithOperation> {
             crypto_key_path,
             data_type: ethereum::eth_sign_request::DataType::TypedTransaction,
         })?;
-        term.write_line(&format!("Signature: {}", signature))?;
+        term.write_line(&format!("Signature: 0x{}", signature))?;
         let tx_signed = tx.rlp_signed(&signature);
         let pending_tx = client.send_raw_transaction(tx_signed).await?;
         term.write_line(&format!("Transaction sent: {}", *pending_tx))?;
@@ -508,7 +471,9 @@ impl AppState<WithOperation> {
             ethers::utils::parse_units(amount.to_string(), decimals as u32)?;
         term.write_line(&format!(
             "Sending {} {} to {}",
-            amount, token_symbol, to
+            ethers::utils::format_units(parsed_amount, decimals as u32)?,
+            token_symbol,
+            to
         ))?;
         let nonce = contract
             .client()
@@ -551,7 +516,7 @@ impl AppState<WithOperation> {
             crypto_key_path,
             data_type: ethereum::eth_sign_request::DataType::TypedTransaction,
         })?;
-        term.write_line(&format!("Signature: {}", signature))?;
+        term.write_line(&format!("Signature: 0x{}", signature))?;
         let tx_signed = transfer_tx.tx.rlp_signed(&signature);
         let client = contract.client();
         let pending_tx = client.send_raw_transaction(tx_signed).await?;
@@ -658,16 +623,7 @@ impl validator::StringValidator for AddressValidator {
         &self,
         s: &str,
     ) -> Result<validator::Validation, inquire::CustomUserError> {
-        // Check if it starts with 0x
-        let address = if s.starts_with("0x") {
-            s
-        } else {
-            // it must be a contact name then the address is in the format "name
-            // <address>" so we split on the space and take the
-            // second part
-            s.split(' ').nth(1).unwrap_or(s)
-        };
-        match types::Address::from_str(address) {
+        match try_parse_address(s.to_string()) {
             Ok(_) => Ok(validator::Validation::Valid),
             Err(e) => Ok(validator::Validation::Invalid(
                 validator::ErrorMessage::Custom(e.to_string()),
@@ -705,7 +661,7 @@ impl inquire::Autocomplete for AddressBookAutoComplete {
                         .to_lowercase()
                         .contains(input)
             })
-            .map(|contact| format!("{} {:?}", contact.name, contact.address))
+            .map(|contact| format!("{} | {:?}", contact.name, contact.address))
             .collect();
         Ok(suggestions)
     }
@@ -746,7 +702,7 @@ impl inquire::Autocomplete for Erc20AutoComplete {
                 token.name.to_lowercase().contains(input)
                     || token.address.to_string().to_lowercase().contains(input)
             })
-            .map(|token| format!("{} {:?}", token.name, token.address))
+            .map(|token| format!("{} | {:?}", token.name, token.address))
             .collect();
         Ok(suggestions)
     }
@@ -760,6 +716,22 @@ impl inquire::Autocomplete for Erc20AutoComplete {
         // we don't want to replace the input with a suggestion
         Ok(inquire::autocompletion::Replacement::None)
     }
+}
+
+fn try_parse_address(
+    s: String,
+) -> Result<types::Address, inquire::InquireError> {
+    // Check if it starts with 0x
+    if s.starts_with("0x") {
+        s.parse::<types::Address>()
+    } else {
+        // it must be a contact name then the address is in the
+        // format "name | <address>" so we split
+        // on the first | and take the second part
+        let address = s.rsplit(" | ").next().unwrap_or(&s);
+        address.trim().parse::<types::Address>()
+    }
+    .map_err(|e| inquire::InquireError::Custom(e.into()))
 }
 
 #[cfg(test)]
