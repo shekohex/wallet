@@ -81,6 +81,7 @@ jobs:
           # - thumbv7em-none-eabihf
           # - thumbv7m-none-eabi
     steps:
+      - uses: frankdejonge/use-ssh-agent@1.0.0
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1
         with:
