@@ -1,3 +1,7 @@
+edition = "2021"
 max_width = 80
 tab_spaces = 4
 wrap_comments = true
+imports_granularity = "Module"
+reorder_imports = true
+group_imports = "StdExternalCrate"

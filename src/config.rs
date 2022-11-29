@@ -1,6 +1,7 @@
 use core::fmt;
 use std::collections::HashMap;
 
+use color_eyre::Result;
 use ethers::types;
 use serde::{Deserialize, Serialize};
 
@@ -8,6 +9,9 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub networks: HashMap<String, Network>,
     pub contacts: Vec<Contact>,
+    #[serde(default)]
+    pub debug: bool,
+    pub proxy: Option<String>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -47,6 +51,9 @@ impl fmt::Display for Contact {
 
 impl Default for Config {
     fn default() -> Self {
+        let proxy = std::env::var("https_proxy")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+            .ok();
         let mut networks = HashMap::new();
         let eth_mainnet = Network {
             rpc_url: "https://api.securerpc.com/v1".parse().unwrap(),
@@ -94,13 +101,19 @@ impl Default for Config {
                 address: types::Address::zero(),
             },
         ];
-        Self { networks, contacts }
+        Self {
+            debug: false,
+            networks,
+            contacts,
+            proxy,
+        }
     }
 }
 
 /// Load the config `shekozwallet.json` from the current directory.
-/// If the file does not exist, it will be created with the default config values.
-pub fn try_load_or_create_default() -> anyhow::Result<Config> {
+/// If the file does not exist, it will be created with the default config
+/// values.
+pub fn try_load_or_create_default() -> Result<Config> {
     let config_path = std::path::Path::new("shekozwallet.json");
     if config_path.exists() {
         let config_file = std::fs::File::open(config_path)?;
