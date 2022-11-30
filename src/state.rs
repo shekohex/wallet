@@ -472,6 +472,8 @@ impl AppState<WithOperation> {
             term.write_line(&format!("View transaction at {}", url))?;
         }
         let progress_spinner = ProgressBar::new_spinner();
+        progress_spinner
+            .enable_steady_tick(core::time::Duration::from_millis(50));
         progress_spinner.set_style(
             ProgressStyle::default_spinner()
                 .tick_strings(&["☱", "☲", "☴"])
@@ -615,6 +617,8 @@ impl AppState<WithOperation> {
             term.write_line(&format!("View transaction at {}", url))?;
         }
         let progress_spinner = ProgressBar::new_spinner();
+        progress_spinner
+            .enable_steady_tick(core::time::Duration::from_millis(50));
         progress_spinner.set_style(
             ProgressStyle::default_spinner()
                 .tick_strings(&["☱", "☲", "☴"])
