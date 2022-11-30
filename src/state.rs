@@ -518,6 +518,7 @@ impl AppState<WithOperation> {
         }: &Erc20TransferOp,
     ) -> Result<()> {
         let client = Arc::new(client.clone());
+        let chain_id = client.get_chainid().await?;
         let contract = crate::erc20::Erc20::new(*erc20_token, client);
         // Check user balance
         let balance = contract
@@ -576,7 +577,7 @@ impl AppState<WithOperation> {
         let mut transfer_tx = transfer_tx.gas_price(gas_price);
         let tx_inner = transfer_tx
             .tx
-            .set_chain_id(network.chain_id.as_u64())
+            .set_chain_id(chain_id.as_u64())
             .set_nonce(nonce)
             .clone();
         transfer_tx.tx = tx_inner;
