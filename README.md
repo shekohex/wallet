@@ -31,6 +31,62 @@ The wallet is interactive, it will first load and verify the config file, then f
 3. after following the steps, it will create the Unsigned Transaction as a QR and ask you to sign it with your signer.
 4. Scanning the result and broadcasting the transaction to the network.
 
+### Testing Locally
+
+I've added a Small ERC20 token for testing, and since I'm using [foundry](https://github.com/foundry-rs/foundry) toolchain, we can spin up a local node, and deploy the contract
+to it for tests.
+
+1. Install Foundry using https://getfoundry.sh/
+2. Start Anvil node
+
+```bash
+anvil --chain-id 1337 -m "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
+```
+
+3. Copy the `tests/contracts/.env.example` file to `tests/contracts/.env` and add change the `PRIVATE_KEY` env to the first private key that anvil printed.
+4. Go to `tests/contracts` and run the `forge update` then `forge script` command like the following:
+
+```bash
+cd tests/contracts
+forge update
+forge script DeployToken --rpc-url local -vvv --broadcast
+```
+
+it should deploy the token, and also print the contract address, Note that address we will need it later.
+
+4. In your Airgap wallet, import the following Seed:
+
+```
+abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art
+```
+
+5. Compile and run the wallet:
+
+```bash
+cargo r
+```
+
+6. Sync your account, and after that, do not make anything else, just shutdown the wallet (Ctrl+C).
+7. Modify `shekozwallet.json` and in the `networks.local.erc20_tokens` add the token we deployed, like the following:
+
+```json
+  "local": {
+      "rpc_url": "http://localhost:8545",
+      "explorer_url": "http://localhost:3000",
+      "chain_id": "0x1337",
+      "currency_symbol": "ETH",
+      "erc20_tokens": [
+        {
+          "address": "0xbba109e735f49fb19fd9765aaa2cb79cc16c38d2",
+          "name": "USDTestToken",
+          "symbol": "USDT"
+        }
+      ]
+  },
+```
+
+8. Finally, run the wallet again, your account should be already synced, so you can use it and send some test ERC20 Tokens.
+
 ### Contributing
 
 While this my custom wallet, and I do not expect anyone else using it too, However, I would be happy to see any contribution or suggestions. So feel free to open an issue to ask about any questions.
