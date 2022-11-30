@@ -8,6 +8,7 @@ use ethers::prelude::k256::elliptic_curve::sec1::ToEncodedPoint;
 use ethers::providers::Middleware;
 use ethers::types;
 use ethers::types::transaction::eip2718::TypedTransaction;
+use indicatif::{ProgressBar, ProgressStyle};
 use inquire::validator;
 use ur_registry::crypto_hd_key::CryptoHDKey;
 use ur_registry::crypto_key_path::CryptoKeyPath;
@@ -17,7 +18,7 @@ use ur_registry::traits::{From, RegistryItem, To};
 pub type EthersClient = ethers::providers::Provider<ethers::providers::Http>;
 
 pub struct AppState<S> {
-    config: crate::config::Config,
+    pub config: crate::config::Config,
     term: console::Term,
     inner: S,
 }
@@ -38,15 +39,20 @@ impl AppState<WithIntial> {
 
     /// Asks the user to select a network.
     pub fn select_network(self) -> Result<AppState<WithNetwork>> {
-        let networks = self.config.networks.keys().collect::<Vec<_>>();
+        let mut networks = self.config.networks.keys().collect::<Vec<_>>();
+        networks.sort();
         let selected_network =
             inquire::Select::new("Choose your network", networks).prompt()?;
-        let network = self.config.networks[selected_network].clone();
-        Ok(AppState {
-            config: self.config,
-            term: self.term,
-            inner: WithNetwork { network },
-        })
+        let network = self.config.networks.get(selected_network).cloned();
+        if let Some(network) = network {
+            Ok(AppState {
+                config: self.config,
+                term: self.term,
+                inner: WithNetwork { network },
+            })
+        } else {
+            Err(eyre::eyre!("Network not found"))
+        }
     }
 }
 
@@ -55,7 +61,18 @@ pub struct WithNetwork {
 }
 
 impl AppState<WithNetwork> {
-    pub fn import_account(self) -> Result<AppState<WithAccount>> {
+    pub fn maybe_import_account(self) -> Result<AppState<WithAccount>> {
+        // we check if we have any saved accounts in the config.
+        // if we do, we ask the user to select one.
+        // if we don't, we ask the user to import one.
+        if self.config.accounts.is_empty() {
+            self.import_account()
+        } else {
+            self.select_account()
+        }
+    }
+
+    fn import_account(mut self) -> Result<AppState<WithAccount>> {
         self.term.write_line("Import your account using the QR")?;
         let content = crate::qrscanner::capture(&self.config)?.to_lowercase();
         // parse the message to know the type of the content.
@@ -76,6 +93,31 @@ impl AppState<WithNetwork> {
             eyre::eyre!("Failed to parse the message as a CryptoHDKey: {}", e)
         })?;
         let xpub = xkeys::XPub::from_str(&hd_key.get_bip32_key())?;
+        let next_account_idx = self.config.accounts.len() + 1;
+        // save the account in the config.
+        self.config.accounts.insert(
+            hd_key
+                .get_name()
+                .unwrap_or_else(|| format!("Account-{next_account_idx}")),
+            crate::config::Bip32XPub(xpub),
+        );
+        crate::config::save(&self.config)?;
+        self.select_account()
+    }
+
+    fn select_account(self) -> Result<AppState<WithAccount>> {
+        let accounts = self.config.accounts.keys().collect::<Vec<_>>();
+        let maybe_account =
+            inquire::Select::new("Choose your master account", accounts)
+                .with_help_message("Cancel to import a new account")
+                .prompt_skippable()?;
+        // if no account was selected, we import a new one.
+        let account = if let Some(account) = maybe_account {
+            account
+        } else {
+            return self.import_account();
+        };
+        let xpub = self.config.accounts[account].clone();
         // Derive many accounts and let the user select one.
         let mut accounts = Vec::new();
         let amount = 5;
@@ -94,13 +136,7 @@ impl AppState<WithNetwork> {
         let accounts_display = accounts
             .iter()
             .enumerate()
-            .map(|(i, (address, _))| {
-                if let Some(name) = hd_key.get_name() {
-                    format!("{name} ({i}): {address}")
-                } else {
-                    format!("Account #{i}: {address}")
-                }
-            })
+            .map(|(i, (address, _))| format!("{account} ({i}): {address}"))
             .collect::<Vec<_>>();
         let selected_account =
             inquire::Select::new("Select an account", accounts_display.clone())
@@ -112,12 +148,13 @@ impl AppState<WithNetwork> {
         let (address, _) = accounts[selected_account_i].clone();
         let crypto_key_path = CryptoKeyPath::from_path(
             format!("m/44'/60'/0'/0/{selected_account_i}"),
-            hd_key.get_origin().and_then(|o| o.get_source_fingerprint()),
-        ).map_err(|e| {
+            Some(xpub.fingerprint().0),
+        )
+        .map_err(|e| {
             eyre::eyre!(
-                "Failed to create a CryptoKeyPath from the selected account: {}",
-                e
-            )
+        "Failed to create a CryptoKeyPath from the selected account: {}",
+        e
+    )
         })?;
         Ok(AppState {
             config: self.config,
@@ -190,6 +227,7 @@ impl AppState<WithAccount> {
             term: self.term.clone(),
             message: message.into(),
             address: self.inner.address,
+            network: self.inner.network.clone(),
             crypto_key_path: self.inner.crypto_key_path.clone(),
         }))
     }
@@ -215,6 +253,7 @@ impl AppState<WithAccount> {
             to: recipient,
             amount,
             from: self.inner.address,
+            network: self.inner.network.clone(),
             client: self.create_ethers_client()?,
         }))
     }
@@ -243,6 +282,7 @@ impl AppState<WithAccount> {
             erc20_token: token,
             to: recipient,
             from: self.inner.address,
+            network: self.inner.network.clone(),
             amount,
             client: self.create_ethers_client()?,
         }))
@@ -280,6 +320,8 @@ pub struct SignMessageOp {
     term: console::Term,
     message: Vec<u8>,
     address: types::Address,
+    #[allow(unused)]
+    network: crate::config::Network,
     crypto_key_path: CryptoKeyPath,
 }
 
@@ -289,6 +331,7 @@ pub struct NativeTransferOp {
     to: types::Address,
     from: types::Address,
     amount: ethers::types::U256,
+    network: crate::config::Network,
     client: EthersClient,
 }
 
@@ -299,6 +342,7 @@ pub struct Erc20TransferOp {
     to: types::Address,
     from: types::Address,
     amount: String,
+    network: crate::config::Network,
     client: EthersClient,
 }
 
@@ -316,16 +360,17 @@ pub enum WithOperation {
 }
 
 impl AppState<WithOperation> {
-    pub async fn execute(self) -> Result<()> {
+    pub async fn execute(self) -> Result<Self> {
         match &self.inner {
-            WithOperation::SignMessage(op) => self.sign_message(op),
+            WithOperation::SignMessage(op) => self.sign_message(op)?,
             WithOperation::NativeTransfer(op) => {
-                self.transfer_native_token(op).await
+                self.transfer_native_token(op).await?
             }
             WithOperation::Erc20Transfer(op) => {
-                self.transfer_erc20_tokens(op).await
+                self.transfer_erc20_tokens(op).await?
             }
-        }
+        };
+        Ok(self)
     }
 
     fn sign_message(
@@ -335,6 +380,7 @@ impl AppState<WithOperation> {
             message,
             address,
             crypto_key_path,
+            ..
         }: &SignMessageOp,
     ) -> Result<()> {
         let signature = self.sign_and_get_signature(SignRequest {
@@ -356,6 +402,7 @@ impl AppState<WithOperation> {
             amount,
             from,
             client,
+            network,
         }: &NativeTransferOp,
     ) -> Result<()> {
         let chain_id = client.get_chainid().await?;
@@ -400,6 +447,7 @@ impl AppState<WithOperation> {
         ))?;
         term.write_line(&format!("Gas Limit: {}", gas_limit))?;
         let tx = tx.set_gas(gas_limit).set_gas_price(gas_price);
+        let tx_hash = tx.sighash();
         term.write_line(&format!(
             "Transaction: {}",
             serde_json::to_string_pretty(&tx)?
@@ -419,17 +467,38 @@ impl AppState<WithOperation> {
         term.write_line(&format!("Signature: 0x{}", signature))?;
         let tx_signed = tx.rlp_signed(&signature);
         let pending_tx = client.send_raw_transaction(tx_signed).await?;
-        term.write_line(&format!("Transaction sent: {}", *pending_tx))?;
+        if let Some(explorer) = network.explorer_url.as_ref() {
+            let url = format!("{}/tx/{}", explorer, tx_hash);
+            term.write_line(&format!("View transaction at {}", url))?;
+        }
+        let progress_spinner = ProgressBar::new_spinner();
+        progress_spinner.set_style(
+            ProgressStyle::default_spinner()
+                .tick_strings(&["☱", "☲", "☴"])
+                .template("{spinner:.green} {msg}")?,
+        );
+        progress_spinner.set_message(format!(
+            "Transaction {} sent, waiting for confirmation...",
+            tx_hash
+        ));
         let maybe_receipt = pending_tx.confirmations(1).await?;
         match maybe_receipt {
             Some(receipt) => {
+                progress_spinner.finish_with_message(format!(
+                    "Transaction {} confirmed!",
+                    receipt.transaction_hash,
+                ));
                 term.write_line(&format!(
-                    "Transaction mined: {}",
-                    receipt.transaction_hash
+                    "Receipt: {}",
+                    serde_json::to_string_pretty(&receipt)?
                 ))?;
             }
             None => {
-                eyre::bail!("Transaction not mined");
+                progress_spinner.finish_with_message(format!(
+                    "Transaction {} failed!",
+                    tx_hash,
+                ));
+                eyre::bail!("Transaction failed");
             }
         }
         Ok(())
@@ -445,6 +514,7 @@ impl AppState<WithOperation> {
             from,
             erc20_token,
             client,
+            network,
         }: &Erc20TransferOp,
     ) -> Result<()> {
         let client = Arc::new(client.clone());
@@ -481,12 +551,19 @@ impl AppState<WithOperation> {
             .await
             .map_err(|e| eyre::eyre!("Failed to fetch nonce: {}", e))?;
         let transfer_tx = contract.transfer(*to, parsed_amount.into());
-        let transfer_tx = transfer_tx.from(*from);
-        // dry call.
-        let gas_limit = transfer_tx
-            .estimate_gas()
-            .await
-            .map_err(|e| eyre::eyre!("Failed to estimate gas: {}", e))?;
+        let mut transfer_tx = transfer_tx.from(*from);
+        match transfer_tx.estimate_gas().await {
+            Ok(gas_limit) => {
+                term.write_line(&format!("Gas Limit: {}", gas_limit))?;
+                transfer_tx = transfer_tx.gas(gas_limit);
+            }
+            Err(e) => {
+                term.write_line(&format!(
+                    "Failed to estimate gas, reason: {}",
+                    e
+                ))?;
+            }
+        };
         let gas_price = contract
             .client()
             .get_gas_price()
@@ -496,18 +573,30 @@ impl AppState<WithOperation> {
             "Gas Price: {} Gwei",
             ethers::utils::format_ether(gas_price),
         ))?;
-        term.write_line(&format!("Gas Limit: {}", gas_limit))?;
-        let mut transfer_tx = transfer_tx.gas(gas_limit).gas_price(gas_price);
-        let tx_inner = transfer_tx.tx.set_nonce(nonce).clone();
+        let mut transfer_tx = transfer_tx.gas_price(gas_price);
+        let tx_inner = transfer_tx
+            .tx
+            .set_chain_id(network.chain_id.as_u64())
+            .set_nonce(nonce)
+            .clone();
         transfer_tx.tx = tx_inner;
         term.write_line(&format!(
             "Transaction: {}",
             serde_json::to_string_pretty(&transfer_tx.tx)?
         ))?;
+        let tx_hash = transfer_tx.tx.sighash();
         // dry call.
-        let result = transfer_tx.call().await?;
-        if !result {
-            term.write_line("WARNING: Dry call failed. Transaction may fail.")?;
+        let result = transfer_tx.call().await;
+        match result {
+            Ok(r) => {
+                term.write_line(&format!("Dry call result: {:?}", r))?;
+            }
+            Err(e) => {
+                term.write_line(
+                    "WARNING: Dry call failed. Transaction may fail.",
+                )?;
+                term.write_line(&format!("Error: {}", e))?;
+            }
         }
         let tx_rlp = transfer_tx.tx.rlp();
         let signature = self.sign_and_get_signature(SignRequest {
@@ -520,17 +609,38 @@ impl AppState<WithOperation> {
         let tx_signed = transfer_tx.tx.rlp_signed(&signature);
         let client = contract.client();
         let pending_tx = client.send_raw_transaction(tx_signed).await?;
-        term.write_line(&format!("Transaction sent: {}", *pending_tx))?;
+        if let Some(explorer) = network.explorer_url.as_ref() {
+            let url = format!("{}/tx/{}", explorer, tx_hash);
+            term.write_line(&format!("View transaction at {}", url))?;
+        }
+        let progress_spinner = ProgressBar::new_spinner();
+        progress_spinner.set_style(
+            ProgressStyle::default_spinner()
+                .tick_strings(&["☱", "☲", "☴"])
+                .template("{spinner:.green} {msg}")?,
+        );
+        progress_spinner.set_message(format!(
+            "Transaction {} sent, waiting for confirmation...",
+            tx_hash
+        ));
         let maybe_receipt = pending_tx.confirmations(1).await?;
         match maybe_receipt {
             Some(receipt) => {
+                progress_spinner.finish_with_message(format!(
+                    "Transaction {} confirmed!",
+                    receipt.transaction_hash,
+                ));
                 term.write_line(&format!(
-                    "Transaction mined: {}",
-                    receipt.transaction_hash
+                    "Receipt: {}",
+                    serde_json::to_string_pretty(&receipt)?
                 ))?;
             }
             None => {
-                eyre::bail!("Transaction not mined");
+                progress_spinner.finish_with_message(format!(
+                    "Transaction {} failed!",
+                    tx_hash,
+                ));
+                eyre::bail!("Transaction failed");
             }
         }
         Ok(())

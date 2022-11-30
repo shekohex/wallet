@@ -3,7 +3,7 @@
 This my custom and simple crypto wallet, designed specifically for my needs:
 
 1. Uses a QR Signer, i.e a QR Hardware wallet, like [Keystone](https://keyst.one/) or [Airgap Vault](https://airgap.it/offline-device/).
-2. Stateless, does not store anything, does not leave any traces.
+2. Privacy focused, does not leave any traces.
 3. Works behind Tor Proxy, by default, considered unsafe otherwise.
 4. Simple, Small, and fast interactive CLI Based.
 
@@ -37,4 +37,10 @@ While this my custom wallet, and I do not expect anyone else using it too, Howev
 
 ### License
 
-Really?
+Really? Okay.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+### Disclaimer
+
+This software is provided as is, and I am not responsible for any loss of funds, or any other damages, caused by using this software.
