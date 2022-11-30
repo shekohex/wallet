@@ -104,6 +104,14 @@ impl Default for Config {
             erc20_tokens: vec![],
         };
         networks.insert("bsc".to_string(), bsc_mainnet);
+        let local_network = Network {
+            rpc_url: "http://localhost:8545".parse().unwrap(),
+            explorer_url: None,
+            chain_id: 1337.into(),
+            currency_symbol: "ETH".to_string(),
+            erc20_tokens: vec![],
+        };
+        networks.insert("local".to_string(), local_network);
         let contacts = vec![
             // Null address
             Contact {

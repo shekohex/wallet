@@ -23,7 +23,9 @@ You can download it from [Github Releases](https://github.com/shekohex/wallet/re
 
 ### Usage
 
-Just run `shekozwallet`, that's it, the wallet will look for `shekozwallet.json` config file and will load it.
+Just run `shekozwallet`, that's it, the wallet will look for `shekozwallet.json` config file and will load it
+if the config file not found, the wallet will create a default one, you can customize it for your needs.
+
 The wallet is interactive, it will first load and verify the config file, then follow the steps:
 
 1. Sync your Account, from your QR Hardware wallet.
@@ -73,7 +75,7 @@ cargo r
   "local": {
       "rpc_url": "http://localhost:8545",
       "explorer_url": "http://localhost:3000",
-      "chain_id": "0x1337",
+      "chain_id": "1337",
       "currency_symbol": "ETH",
       "erc20_tokens": [
         {
