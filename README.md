@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/shekohex/wallet/actions/workflows/ci.yml/badge.svg)](https://github.com/shekohex/wallet/actions/workflows/ci.yml)
 
-[![asciicast](https://asciinema.org/a/541694.svg)](https://asciinema.org/a/541694)
+![demo](https://i.imgur.com/5HO24Rb.gif)
 
 This my custom and simple crypto wallet, designed specifically for my needs:
 
