@@ -1,5 +1,9 @@
 ## ShekozWallet, my personal crypto wallet
 
+[![CI](https://github.com/shekohex/wallet/actions/workflows/ci.yml/badge.svg)](https://github.com/shekohex/wallet/actions/workflows/ci.yml)
+
+[![asciicast](https://asciinema.org/a/541694.svg)](https://asciinema.org/a/541694)
+
 This my custom and simple crypto wallet, designed specifically for my needs:
 
 1. Uses a QR Signer, i.e a QR Hardware wallet, like [Keystone](https://keyst.one/) or [Airgap Vault](https://airgap.it/offline-device/).
