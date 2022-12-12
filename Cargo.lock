@@ -3281,7 +3281,7 @@ dependencies = [
 
 [[package]]
 name = "shekozwallet"
-version = "0.1.0-rc.3"
+version = "0.1.0-rc.4"
 dependencies = [
  "coins-bip32",
  "color-eyre",
@@ -4011,9 +4011,9 @@ dependencies = [
 
 [[package]]
 name = "v4l"
-version = "0.13.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "950f4328645beeb19551e4a884600adf4e4714fe96f45c46f85eb706f4d786ce"
+checksum = "fd9946a2fda19c7a729dc72e28b9fd9c653e9b7de954ffe3aecaf51977f88762"
 dependencies = [
  "bitflags",
  "libc",
