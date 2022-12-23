@@ -151,10 +151,7 @@ impl AppState<WithNetwork> {
             Some(xpub.fingerprint().0),
         )
         .map_err(|e| {
-            eyre::eyre!(
-        "Failed to create a CryptoKeyPath from the selected account: {}",
-        e
-    )
+            eyre::eyre!("Failed to create a CryptoKeyPath from the selected account: {}", e)
         })?;
         Ok(AppState {
             config: self.config,
@@ -468,7 +465,7 @@ impl AppState<WithOperation> {
         let tx_signed = tx.rlp_signed(&signature);
         let pending_tx = client.send_raw_transaction(tx_signed).await?;
         if let Some(explorer) = network.explorer_url.as_ref() {
-            let url = format!("{}/tx/{}", explorer, tx_hash);
+            let url = format!("{}/tx/{:?}", explorer, tx_hash);
             term.write_line(&format!("View transaction at {}", url))?;
         }
         let progress_spinner = ProgressBar::new_spinner();
@@ -613,7 +610,7 @@ impl AppState<WithOperation> {
         let client = contract.client();
         let pending_tx = client.send_raw_transaction(tx_signed).await?;
         if let Some(explorer) = network.explorer_url.as_ref() {
-            let url = format!("{}/tx/{}", explorer, tx_hash);
+            let url = format!("{}/tx/{:?}", explorer, tx_hash);
             term.write_line(&format!("View transaction at {}", url))?;
         }
         let progress_spinner = ProgressBar::new_spinner();
