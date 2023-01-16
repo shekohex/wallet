@@ -1956,7 +1956,7 @@ version = "0.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d207dc617c7a380ab07ff572a6e52fa202a2a8f355860ac9c38e23f8196be1b"
 dependencies = [
- "console 0.14.1",
+ "console 0.15.4",
  "lazy_static",
  "number_prefix",
  "regex",
@@ -1964,9 +1964,9 @@ dependencies = [
 
 [[package]]
 name = "indicatif"
-version = "0.17.2"
+version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4295cbb7573c16d310e99e713cf9e75101eb190ab31fccd35f2d2691b4352b19"
+checksum = "cef509aa9bc73864d6756f0d34d35504af3cf0844373afe9b8669a5b8005a729"
 dependencies = [
  "console 0.15.4",
  "number_prefix",
@@ -3275,7 +3275,7 @@ dependencies = [
  "ethers",
  "hex",
  "image",
- "indicatif 0.17.2",
+ "indicatif 0.17.3",
  "inquire",
  "qrcode",
  "reqwest",
