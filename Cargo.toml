@@ -21,7 +21,7 @@ image = "0.24"
 rqrr = "0.6"
 viuer = "0.6"
 indicatif = "0.17"
-coins-bip32 = "0.7"
+coins-bip32 = "0.8"
 
 [dependencies.ur-registry]
 git = "https://github.com/shekohex/ur-registry-rust.git"
