@@ -14,7 +14,7 @@ ethers = { version = "1", default-features = false, features = ["rustls", "abige
 reqwest = { version = "0.11", default-features = false, features = ["json", "socks", "rustls-tls"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 console = "0.15"
-inquire = { version = "0.5", default-features = false, features = ["console"] }
+inquire = { version = "0.6", default-features = false, features = ["console"] }
 v4l = "0.13"
 qrcode = { version = "0.12", default-features = false }
 image = "0.24"
