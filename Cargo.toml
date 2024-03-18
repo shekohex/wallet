@@ -9,7 +9,7 @@ color-eyre = { version = "0.6" }
 tokio = { version = "1.25", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-url = { version = "2.3", default-features = false, features = ["serde"] }
+url = { version = "2.5", default-features = false, features = ["serde"] }
 ethers = { version = "1", default-features = false, features = ["rustls", "abigen"] }
 reqwest = { version = "0.11", default-features = false, features = ["json", "socks", "rustls-tls"] }
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
