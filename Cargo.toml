@@ -16,7 +16,7 @@ hex = { version = "0.4.3", default-features = false, features = ["std"] }
 console = "0.15"
 inquire = { version = "0.6", default-features = false, features = ["console"] }
 v4l = "0.13"
-qrcode = { version = "0.12", default-features = false }
+qrcode = { version = "0.14", default-features = false }
 image = "0.24"
 rqrr = "0.6"
 viuer = "0.6"
