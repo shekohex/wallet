@@ -746,15 +746,15 @@ dependencies = [
 
 [[package]]
 name = "console"
-version = "0.15.5"
+version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3d79fbe8970a77e3e34151cc13d3b3e248aa0faaecb9f6091fa07ebefe5ad60"
+checksum = "0e1f83fc076bd6dd27517eacdf25fef6c4dfe5f1d7448bafaaf3a26f13b5e4eb"
 dependencies = [
  "encode_unicode",
  "lazy_static",
  "libc",
  "unicode-width",
- "windows-sys 0.42.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2039,7 +2039,7 @@ version = "0.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d207dc617c7a380ab07ff572a6e52fa202a2a8f355860ac9c38e23f8196be1b"
 dependencies = [
- "console 0.15.5",
+ "console 0.14.1",
  "lazy_static",
  "number_prefix",
  "regex",
@@ -2051,7 +2051,7 @@ version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cef509aa9bc73864d6756f0d34d35504af3cf0844373afe9b8669a5b8005a729"
 dependencies = [
- "console 0.15.5",
+ "console 0.15.8",
  "number_prefix",
  "portable-atomic",
  "unicode-width",
@@ -2073,7 +2073,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c33e7c1ddeb15c9abcbfef6029d8e29f69b52b6d6c891031b88ed91b5065803b"
 dependencies = [
  "bitflags 1.3.2",
- "console 0.15.5",
+ "console 0.15.8",
  "dyn-clone",
  "lazy_static",
  "newline-converter",
@@ -3382,7 +3382,7 @@ version = "0.1.0-rc.4"
 dependencies = [
  "coins-bip32 0.8.0",
  "color-eyre",
- "console 0.15.5",
+ "console 0.15.8",
  "ethers",
  "hex",
  "image",
@@ -4188,7 +4188,7 @@ checksum = "b511f7e9ae27b5750f12ca50c353a1179bd4cc964a47294eb0d2cdad40cb41c0"
 dependencies = [
  "ansi_colours",
  "base64 0.13.1",
- "console 0.15.5",
+ "console 0.15.8",
  "crossterm",
  "image",
  "lazy_static",
