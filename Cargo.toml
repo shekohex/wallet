@@ -15,7 +15,7 @@ reqwest = { version = "0.11", default-features = false, features = ["json", "soc
 hex = { version = "0.4.3", default-features = false, features = ["std"] }
 console = "0.15"
 inquire = { version = "0.6", default-features = false, features = ["console"] }
-v4l = "0.13"
+v4l = "0.14"
 qrcode = { version = "0.14", default-features = false }
 image = "0.24"
 rqrr = "0.6"
