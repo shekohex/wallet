@@ -17,7 +17,7 @@ console = "0.15"
 inquire = { version = "0.6", default-features = false, features = ["console"] }
 v4l = "0.14"
 qrcode = { version = "0.14", default-features = false }
-image = "0.24"
+image = "0.25"
 rqrr = "0.6"
 viuer = "0.6"
 indicatif = "0.17"
