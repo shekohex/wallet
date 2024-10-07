@@ -18,7 +18,7 @@ inquire = { version = "0.6", default-features = false, features = ["console"] }
 v4l = "0.14"
 qrcode = { version = "0.14", default-features = false }
 image = "0.24"
-rqrr = "0.6"
+rqrr = "0.8"
 viuer = "0.6"
 indicatif = "0.17"
 coins-bip32 = "0.8"
